@@ -86,7 +86,6 @@ function Navbar() {
               <Link href="/my-learning" style={{ textDecoration: "none" }}><Button sx={{ color: "white" }}>My Learning</Button></Link>
               <Link href="/instructor" style={{ textDecoration: "none" }}><Button sx={{ color: "white" }}>Teach</Button></Link>
 
-              {/* Auth-based links */}
               {!user ? (
                 <>
                   <Link href="/auth/register" style={{ textDecoration: "none" }}><Button sx={{ color: "white" }}>Register</Button></Link>
@@ -118,17 +117,20 @@ function Navbar() {
                     <Divider />
                     <MenuItem onClick={handleProfileMenuClose}>
                       <Link href="/profile" style={{ textDecoration: "none", color: "inherit", width: "100%" }}>
-                        <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>Profile
+                        <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
+                        Profile
                       </Link>
                     </MenuItem>
                     <MenuItem onClick={handleProfileMenuClose}>
-                      <Link href="/settings" style={{ textDecoration: "none", color: "inherit", width: "100%" }}>
-                        <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>Settings
+                      <Link href="/auth/settings" style={{ textDecoration: "none", color: "inherit", width: "100%" }}>
+                        <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+                        Settings
                       </Link>
                     </MenuItem>
                     <Divider />
                     <MenuItem onClick={handleLogout} sx={{ color: "error.main" }}>
-                      <ListItemIcon><LogoutIcon fontSize="small" sx={{ color: "error.main" }} /></ListItemIcon>Logout
+                      <ListItemIcon><LogoutIcon fontSize="small" sx={{ color: "error.main" }} /></ListItemIcon>
+                      Logout
                     </MenuItem>
                   </Menu>
                 </>
@@ -159,7 +161,7 @@ function Navbar() {
           ) : (
             <>
               <ListItem disablePadding><ListItemButton><Link href="/profile" style={{ textDecoration: "none", color: "inherit", width: "100%" }}><ListItemIcon><PersonIcon sx={{ color: "white" }} /></ListItemIcon><ListItemText primary="Profile" /></Link></ListItemButton></ListItem>
-              <ListItem disablePadding><ListItemButton><Link href="/settings" style={{ textDecoration: "none", color: "inherit", width: "100%" }}><ListItemIcon><SettingsIcon sx={{ color: "white" }} /></ListItemIcon><ListItemText primary="Settings" /></Link></ListItemButton></ListItem>
+              <ListItem disablePadding><ListItemButton><Link href="/auth/settings" style={{ textDecoration: "none", color: "inherit", width: "100%" }}><ListItemIcon><SettingsIcon sx={{ color: "white" }} /></ListItemIcon><ListItemText primary="Settings" /></Link></ListItemButton></ListItem>
               <ListItem disablePadding><ListItemButton onClick={handleLogout}><ListItemIcon><LogoutIcon sx={{ color: "#fca5a5" }} /></ListItemIcon><ListItemText primary="Logout" sx={{ color: "#fca5a5" }} /></ListItemButton></ListItem>
             </>
           )}
