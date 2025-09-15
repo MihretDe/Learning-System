@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Allow all dev origins for Replit proxy
+  allowedDevOrigins: ['*.replit.dev'],
 };
 
 export default nextConfig;
