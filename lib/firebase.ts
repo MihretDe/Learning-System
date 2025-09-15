@@ -27,4 +27,15 @@ export const storage = getStorage(app);
 
 // Analytics only works in the browser
 
-export const analytics = (await isSupported()) ? getAnalytics(app) : null;
+// Analytics only works in the browser - fix async initialization
+let analytics = null;
+if (typeof window !== 'undefined') {
+  // Only initialize analytics in the browser
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  });
+}
+
+export { analytics };
