@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, BookOpen, FileText, Users } from "lucide-react";
-import CourseForm from "@/components/instructor/CourseForm";
-import LessonForm from "@/components/instructor/LessonForm";
-import AssignmentForm from "@/components/instructor/AssignmentForm";
+import dynamic from "next/dynamic";
 import type { Course } from "@/lib/types";
+
+// Dynamic imports to avoid SSR issues
+const CourseForm = dynamic(() => import("@/components/instructor/CourseForm"), { ssr: false });
+const LessonForm = dynamic(() => import("@/components/instructor/LessonForm"), { ssr: false });
+const AssignmentForm = dynamic(() => import("@/components/instructor/AssignmentForm"), { ssr: false });
 
 interface Lesson {
   id: string;
@@ -258,11 +261,14 @@ export default function InstructorDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
           <div key={course.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <img
+            <div className="w-full h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+              <BookOpen className="h-16 w-16 text-white opacity-50" />
+            </div>
+            {/* <img
               src={course.imageUrl}
               alt={course.title}
               className="w-full h-48 object-cover"
-            />
+            /> */}
             <div className="p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-2">{course.title}</h3>
               <p className="text-gray-600 mb-4">{course.description}</p>
@@ -272,12 +278,14 @@ export default function InstructorDashboard() {
                   <button
                     onClick={() => handleEditCourse(course)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit Course"
                   >
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteCourse(course.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Course"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -342,12 +350,14 @@ export default function InstructorDashboard() {
                         <button
                           onClick={() => handleEditLesson(lesson)}
                           className="text-blue-600 hover:text-blue-900"
+                          title="Edit Lesson"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteLesson(lesson.id)}
                           className="text-red-600 hover:text-red-900"
+                          title="Delete Lesson"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -421,12 +431,14 @@ export default function InstructorDashboard() {
                         <button
                           onClick={() => handleEditAssignment(assignment)}
                           className="text-blue-600 hover:text-blue-900"
+                          title="Edit Assignment"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteAssignment(assignment.id)}
                           className="text-red-600 hover:text-red-900"
+                          title="Delete Assignment"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

@@ -25,3 +25,23 @@ export interface CourseReview {
   comment: string;
   date: string;
 }
+
+export interface Lesson {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  duration: string;
+  videoUrl?: string;
+  content: string;
+}
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  maxPoints: number;
+  instructions: string;
+}

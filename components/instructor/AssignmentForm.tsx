@@ -2,17 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import type { Course } from "@/lib/types";
-
-interface Assignment {
-  id: string;
-  courseId: string;
-  title: string;
-  description: string;
-  dueDate: string;
-  maxPoints: number;
-  instructions: string;
-}
+import type { Course, Assignment } from "@/lib/types";
 
 interface AssignmentFormProps {
   assignment?: Assignment | null;

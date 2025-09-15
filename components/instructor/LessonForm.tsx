@@ -2,17 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import type { Course } from "@/lib/types";
-
-interface Lesson {
-  id: string;
-  courseId: string;
-  title: string;
-  description: string;
-  duration: string;
-  videoUrl?: string;
-  content: string;
-}
+import type { Course, Lesson } from "@/lib/types";
 
 interface LessonFormProps {
   lesson?: Lesson | null;
