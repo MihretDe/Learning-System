@@ -129,6 +129,20 @@ function Navbar() {
                   My Learning
                 </Button>
               </Link>
+              <Link href="/instructor" style={{ textDecoration: "none" }}>
+                <Button
+                  sx={{
+                    color: "rgba(255, 255, 255, 0.9)",
+                    fontWeight: 500,
+                    "&:hover": {
+                      color: "white",
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    },
+                  }}
+                >
+                  Teach
+                </Button>
+              </Link>
 
               {/* User Profile */}
               <IconButton
