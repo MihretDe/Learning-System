@@ -1,40 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, BookOpen, FileText, Users } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, FileText, Users, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { Course } from "@/lib/types";
+import { courseAPI, lessonAPI, assignmentAPI, type Lesson, type Assignment } from "@/lib/api";
 
 // Dynamic imports to avoid SSR issues
 const CourseForm = dynamic(() => import("@/components/instructor/CourseForm"), { ssr: false });
 const LessonForm = dynamic(() => import("@/components/instructor/LessonForm"), { ssr: false });
 const AssignmentForm = dynamic(() => import("@/components/instructor/AssignmentForm"), { ssr: false });
 
-interface Lesson {
-  id: string;
-  courseId: string;
-  title: string;
-  description: string;
-  duration: string;
-  videoUrl?: string;
-  content: string;
-}
-
-interface Assignment {
-  id: string;
-  courseId: string;
-  title: string;
-  description: string;
-  dueDate: string;
-  maxPoints: number;
-  instructions: string;
-}
+// Import interfaces from api.ts
 
 export default function InstructorDashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "courses" | "lessons" | "assignments">("overview");
   const [courses, setCourses] = useState<Course[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Modal states
   const [showCourseForm, setShowCourseForm] = useState(false);
@@ -46,43 +34,32 @@ export default function InstructorDashboard() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
+  // Load data from Firebase API
   useEffect(() => {
-    // Load initial data (mock data for now)
-    setCourses([
-      {
-        id: "1",
-        title: "React Fundamentals",
-        description: "Learn the basics of React development",
-        category: "Programming",
-        instructor: "John Doe",
-        imageUrl: "/placeholder.svg",
-        price: 99.99,
-      },
-    ]);
-
-    setLessons([
-      {
-        id: "1",
-        courseId: "1",
-        title: "Introduction to React",
-        description: "Getting started with React",
-        duration: "30 min",
-        content: "React is a JavaScript library...",
-      },
-    ]);
-
-    setAssignments([
-      {
-        id: "1",
-        courseId: "1",
-        title: "Build a Todo App",
-        description: "Create a simple todo application using React",
-        dueDate: "2024-02-15",
-        maxPoints: 100,
-        instructions: "Build a todo app with add, edit, and delete functionality",
-      },
-    ]);
+    loadAllData();
   }, []);
+
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [coursesData, lessonsData, assignmentsData] = await Promise.all([
+        courseAPI.getAll(),
+        lessonAPI.getAll(),
+        assignmentAPI.getAll()
+      ]);
+      
+      setCourses(coursesData || []);
+      setLessons(lessonsData || []);
+      setAssignments(assignmentsData || []);
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddCourse = () => {
     setEditingCourse(null);
@@ -94,30 +71,51 @@ export default function InstructorDashboard() {
     setShowCourseForm(true);
   };
 
-  const handleDeleteCourse = (courseId: string) => {
-    if (confirm("Are you sure you want to delete this course?")) {
-      setCourses(courses.filter(c => c.id !== courseId));
-      setLessons(lessons.filter(l => l.courseId !== courseId));
-      setAssignments(assignments.filter(a => a.courseId !== courseId));
+  const handleDeleteCourse = async (courseId: string) => {
+    if (confirm("Are you sure you want to delete this course? This will also delete all related lessons and assignments.")) {
+      try {
+        setActionLoading(true);
+        await courseAPI.delete(courseId);
+        
+        // Remove from local state
+        setCourses(courses.filter(c => c.id !== courseId));
+        setLessons(lessons.filter(l => l.courseId !== courseId));
+        setAssignments(assignments.filter(a => a.courseId !== courseId));
+      } catch (err) {
+        console.error('Error deleting course:', err);
+        alert('Failed to delete course. Please try again.');
+      } finally {
+        setActionLoading(false);
+      }
     }
   };
 
-  const handleSaveCourse = (courseData: Omit<Course, "id">) => {
-    if (editingCourse) {
-      setCourses(courses.map(c => 
-        c.id === editingCourse.id 
-          ? { ...courseData, id: editingCourse.id }
-          : c
-      ));
-    } else {
-      const newCourse: Course = {
-        ...courseData,
-        id: Date.now().toString(),
-      };
-      setCourses([...courses, newCourse]);
+  const handleSaveCourse = async (courseData: Omit<Course, "id">) => {
+    try {
+      setActionLoading(true);
+      
+      if (editingCourse) {
+        // Update existing course
+        const updatedCourse = await courseAPI.update(editingCourse.id, courseData);
+        setCourses(courses.map(c => 
+          c.id === editingCourse.id 
+            ? { ...courseData, id: editingCourse.id }
+            : c
+        ));
+      } else {
+        // Create new course
+        const newCourse = await courseAPI.create(courseData);
+        setCourses([...courses, { ...courseData, id: newCourse.id }]);
+      }
+      
+      setShowCourseForm(false);
+      setEditingCourse(null);
+    } catch (err) {
+      console.error('Error saving course:', err);
+      alert('Failed to save course. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
-    setShowCourseForm(false);
-    setEditingCourse(null);
   };
 
   const handleAddLesson = () => {
@@ -130,28 +128,47 @@ export default function InstructorDashboard() {
     setShowLessonForm(true);
   };
 
-  const handleDeleteLesson = (lessonId: string) => {
+  const handleDeleteLesson = async (lessonId: string) => {
     if (confirm("Are you sure you want to delete this lesson?")) {
-      setLessons(lessons.filter(l => l.id !== lessonId));
+      try {
+        setActionLoading(true);
+        await lessonAPI.delete(lessonId);
+        setLessons(lessons.filter(l => l.id !== lessonId));
+      } catch (err) {
+        console.error('Error deleting lesson:', err);
+        alert('Failed to delete lesson. Please try again.');
+      } finally {
+        setActionLoading(false);
+      }
     }
   };
 
-  const handleSaveLesson = (lessonData: Omit<Lesson, "id">) => {
-    if (editingLesson) {
-      setLessons(lessons.map(l => 
-        l.id === editingLesson.id 
-          ? { ...lessonData, id: editingLesson.id }
-          : l
-      ));
-    } else {
-      const newLesson: Lesson = {
-        ...lessonData,
-        id: Date.now().toString(),
-      };
-      setLessons([...lessons, newLesson]);
+  const handleSaveLesson = async (lessonData: Omit<Lesson, "id">) => {
+    try {
+      setActionLoading(true);
+      
+      if (editingLesson) {
+        // Update existing lesson
+        await lessonAPI.update(editingLesson.id, lessonData);
+        setLessons(lessons.map(l => 
+          l.id === editingLesson.id 
+            ? { ...lessonData, id: editingLesson.id }
+            : l
+        ));
+      } else {
+        // Create new lesson
+        const newLesson = await lessonAPI.create(lessonData);
+        setLessons([...lessons, { ...lessonData, id: newLesson.id }]);
+      }
+      
+      setShowLessonForm(false);
+      setEditingLesson(null);
+    } catch (err) {
+      console.error('Error saving lesson:', err);
+      alert('Failed to save lesson. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
-    setShowLessonForm(false);
-    setEditingLesson(null);
   };
 
   const handleAddAssignment = () => {
@@ -164,28 +181,47 @@ export default function InstructorDashboard() {
     setShowAssignmentForm(true);
   };
 
-  const handleDeleteAssignment = (assignmentId: string) => {
+  const handleDeleteAssignment = async (assignmentId: string) => {
     if (confirm("Are you sure you want to delete this assignment?")) {
-      setAssignments(assignments.filter(a => a.id !== assignmentId));
+      try {
+        setActionLoading(true);
+        await assignmentAPI.delete(assignmentId);
+        setAssignments(assignments.filter(a => a.id !== assignmentId));
+      } catch (err) {
+        console.error('Error deleting assignment:', err);
+        alert('Failed to delete assignment. Please try again.');
+      } finally {
+        setActionLoading(false);
+      }
     }
   };
 
-  const handleSaveAssignment = (assignmentData: Omit<Assignment, "id">) => {
-    if (editingAssignment) {
-      setAssignments(assignments.map(a => 
-        a.id === editingAssignment.id 
-          ? { ...assignmentData, id: editingAssignment.id }
-          : a
-      ));
-    } else {
-      const newAssignment: Assignment = {
-        ...assignmentData,
-        id: Date.now().toString(),
-      };
-      setAssignments([...assignments, newAssignment]);
+  const handleSaveAssignment = async (assignmentData: Omit<Assignment, "id">) => {
+    try {
+      setActionLoading(true);
+      
+      if (editingAssignment) {
+        // Update existing assignment
+        await assignmentAPI.update(editingAssignment.id, assignmentData);
+        setAssignments(assignments.map(a => 
+          a.id === editingAssignment.id 
+            ? { ...assignmentData, id: editingAssignment.id }
+            : a
+        ));
+      } else {
+        // Create new assignment
+        const newAssignment = await assignmentAPI.create(assignmentData);
+        setAssignments([...assignments, { ...assignmentData, id: newAssignment.id }]);
+      }
+      
+      setShowAssignmentForm(false);
+      setEditingAssignment(null);
+    } catch (err) {
+      console.error('Error saving assignment:', err);
+      alert('Failed to save assignment. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
-    setShowAssignmentForm(false);
-    setEditingAssignment(null);
   };
 
   const renderOverview = () => (
@@ -454,12 +490,51 @@ export default function InstructorDashboard() {
     </div>
   );
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</h2>
+          <p className="text-gray-600">Please wait while we load your courses, lessons, and assignments.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-red-800 mb-2">Error Loading Dashboard</h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={loadAllData}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Instructor Dashboard</h1>
           <p className="text-gray-600">Manage your courses, lessons, and assignments</p>
+          {actionLoading && (
+            <div className="mt-2 flex items-center text-blue-600">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <span>Processing...</span>
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}
