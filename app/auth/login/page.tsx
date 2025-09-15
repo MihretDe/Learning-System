@@ -35,7 +35,7 @@ export default function LoginPage() {
         onChange={(e) => setEmail(e.target.value)}
       />
       <input
-        className="border p-2 w-full mb-2"
+        className="border p-2 w-full mb-2 text-black"
         type="password"
         placeholder="Password"
         value={password}
