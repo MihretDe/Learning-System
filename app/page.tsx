@@ -1,11 +1,14 @@
-// app/page.tsx
 "use client"; // This is a client component
 
 import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 import CourseCard from "@/components/CourseCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import { mockCourses } from "@/lib/mockCourses";
 import type { Course } from "@/lib/types"; // Import your Course interface
+import Link from "next/link";
 
 export default function HomePage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -14,6 +17,8 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [user, authLoading] = useAuthState(auth);
 
   useEffect(() => {
     setLoading(true);
@@ -51,6 +56,17 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <nav className="bg-white shadow-sm">
+          <div className="container mx-auto px-8 py-4 flex justify-between items-center">
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+              LearnHub
+            </div>
+            <div className="flex gap-4">
+              <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </nav>
         <div className="container mx-auto p-8">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -88,7 +104,14 @@ export default function HomePage() {
             comprehensive online courses
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+            <button
+              onClick={() =>
+                document
+                  .getElementById("courses")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+            >
               Browse Courses
             </button>
           </div>
@@ -116,7 +139,7 @@ export default function HomePage() {
         </div>
 
         {/* Course Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div id="courses" className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
               Explore Our Courses
