@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import CourseCard from "@/components/CourseCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import { mockCourses } from "@/lib/mockCourses";
 import type { Course } from "@/lib/types"; // Import your Course interface
-import Link from "next/link";
 
 export default function HomePage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -19,6 +18,13 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [user, authLoading] = useAuthState(auth);
+  const router = useRouter();
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     setLoading(true);

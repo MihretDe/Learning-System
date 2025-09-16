@@ -20,7 +20,6 @@ export default function SettingsPage() {
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        const data = docSnap.data();
         setName(user.displayName || "");
         setEmail(user.email || "");
       }
@@ -46,8 +45,12 @@ export default function SettingsPage() {
 
       alert("✅ Settings updated successfully!");
       setPassword("");
-    } catch (error: any) {
-      alert("❌ " + error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert("❌ " + error.message);
+      } else {
+        alert("❌ An unknown error occurred.");
+      }
     } finally {
       setLoading(false);
     }

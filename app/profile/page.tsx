@@ -183,8 +183,8 @@ export default function ProfilePage() {
                   No Courses Yet
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  You haven't enrolled in any courses yet. Start your learning
-                  journey today!
+                  You haven&apos;t enrolled in any courses yet. Start your
+                  learning journey today!
                 </p>
                 <Link
                   href="/"
